@@ -1,0 +1,9 @@
+*
+!requirements.txt
+!pyproject.toml
+!src/
+!src/telco_churn/
+!src/telco_churn/*.py
+!artifacts/
+!artifacts/model.joblib
+!artifacts/model.manifest.json

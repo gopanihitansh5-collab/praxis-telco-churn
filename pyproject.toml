@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "telco-churn-assessment"
 version = "0.1.0"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.10,<3.12"
 description = "Leakage-safe customer churn classification and JSON inference"
 
 [tool.setuptools.packages.find]

@@ -1,24 +1,37 @@
 name: tests
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'predict.py'
-      - 'requirements.txt'
-      - 'pyproject.toml'
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    strategy:
+      matrix:
+        python: ['3.10', '3.11']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python }}
           cache: pip
-      - run: python -m pip install -r requirements.txt
+      - run: python -m pip install -r requirements-optional.txt
       - run: python -m pip install -e .
+      - run: python -m pip check
+      - run: ruff check src tests predict.py download_data.py
+      - run: ruff format --check src tests predict.py download_data.py
       - run: pytest -q
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t telco-churn .
+      - run: |
+          docker run -d --name churn -p 127.0.0.1:8000:8000 telco-churn
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8000/health && break || sleep 2
+          done
+          curl -fsS http://127.0.0.1:8000/health
+          curl -fsS -H 'Content-Type: application/json' --data @sample_customer.json http://127.0.0.1:8000/predict > response.json
+          python -c 'import json; p=json.load(open("response.json")); assert p["prediction"] == 1 and 0 < p["churn_probability"] < 1'
+      - if: always()
+        run: docker logs churn || true

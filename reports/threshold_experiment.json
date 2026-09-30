@@ -1,0 +1,21 @@
+{
+  "rows": 5634,
+  "holdout_used": false,
+  "default_model_changed": false,
+  "outer_fold_thresholds": [
+    0.5099999999999999,
+    0.5499999999999999,
+    0.5299999999999999
+  ],
+  "fixed_0_5": {
+    "f1": 0.6318951392681594,
+    "precision": 0.5339178587909552,
+    "recall": 0.7739130434782608
+  },
+  "training_selected_f1": {
+    "f1": 0.6333994896512617,
+    "precision": 0.5497047244094488,
+    "recall": 0.7471571906354515
+  },
+  "caveat": "Nested 3-fold training-only diagnostic. Threshold chosen by inner OOF F1, not business cost. Outer estimates are evaluation, not selection. No single deployment threshold is inferred."
+}
