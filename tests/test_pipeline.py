@@ -111,3 +111,14 @@ def test_deterministic_bootstrap_intervals():
     assert a == bootstrap_intervals(y, p, repeats=30)
     for interval in a.values():
         assert 0 <= interval['lower'] <= interval['upper'] <= 1
+
+
+def test_calibration_report_preserves_holdout_boundary():
+    report = json.loads(open('reports/calibration_experiment.json').read())
+    assert report['holdout_used'] is False
+    assert report['default_model_changed'] is False
+    assert report['rows'] == 5634
+    assert len(report['fold_best_parameters']) == 3
+    for name in ['raw_forest', 'sigmoid_calibrated_forest']:
+        for metric in ['brier', 'roc_auc', 'average_precision', 'f1_at_0_5']:
+            assert 0 <= report[name][metric] <= 1

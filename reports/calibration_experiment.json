@@ -1,0 +1,45 @@
+{
+  "evaluation": "3-fold outer out-of-fold predictions on original training partition only",
+  "rows": 5634,
+  "holdout_used": false,
+  "inner_folds": 3,
+  "fold_best_parameters": [
+    {
+      "model__max_depth": null,
+      "model__max_features": "sqrt",
+      "model__min_samples_leaf": 8
+    },
+    {
+      "model__max_depth": 6,
+      "model__max_features": 0.7,
+      "model__min_samples_leaf": 8
+    },
+    {
+      "model__max_depth": 6,
+      "model__max_features": 0.7,
+      "model__min_samples_leaf": 8
+    }
+  ],
+  "raw_forest": {
+    "brier": 0.15647299196846537,
+    "log_loss": 0.470725291812925,
+    "roc_auc": 0.8453731169615074,
+    "average_precision": 0.6512838624060089,
+    "f1_at_0_5": 0.6365131578947368
+  },
+  "sigmoid_calibrated_forest": {
+    "brier": 0.13476021069045682,
+    "log_loss": 0.41670676651088767,
+    "roc_auc": 0.8468622556787099,
+    "average_precision": 0.6538187324519905,
+    "f1_at_0_5": 0.6023306627822287
+  },
+  "default_model_changed": false,
+  "caveats": [
+    "Hyperparameter search stays within each outer training fold.",
+    "Calibration CV uses parameters selected within outer training data; outer validation remains unseen.",
+    "Calibrated ensemble also averages multiple models, so differences are not purely due to sigmoid mapping.",
+    "Lower Brier/log-loss does not establish future calibration or a business-optimal threshold.",
+    "Fixed 0.5 threshold is not tuned; calibrated probabilities can change precision/recall balance."
+  ]
+}
