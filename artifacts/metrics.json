@@ -1,0 +1,93 @@
+{
+  "seed": 42,
+  "train_rows": 5634,
+  "test_rows": 1409,
+  "train_churn_rate": 0.2653532126375577,
+  "test_churn_rate": 0.2654364797728886,
+  "selected_model": "random_forest_tuned",
+  "selection_metric": "training CV average precision",
+  "decision_threshold": 0.5,
+  "forest_best_params": {
+    "model__max_depth": 6,
+    "model__max_features": 0.7,
+    "model__min_samples_leaf": 2
+  },
+  "versions": {
+    "sklearn": "1.7.2",
+    "pandas": "2.3.3"
+  },
+  "dataset_sha256": "88be4b93fbe0cc83421af1c503794c97c342eca914c1576db7c276e61d61358a",
+  "required_features": [
+    "SeniorCitizen",
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges",
+    "gender",
+    "Partner",
+    "Dependents",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod"
+  ],
+  "results": [
+    {
+      "model": "logistic_regression",
+      "cv": {
+        "roc_auc": 0.8459495012172488,
+        "pr_auc_ap": 0.6600234497245435,
+        "f1": 0.6279272719115523
+      },
+      "holdout": {
+        "roc_auc": 0.8412978893797307,
+        "pr_auc_ap": 0.6325780038908728,
+        "f1": 0.6136125654450262,
+        "precision": 0.504302925989673,
+        "recall": 0.7834224598930482,
+        "confusion_matrix": [
+          [
+            747,
+            288
+          ],
+          [
+            81,
+            293
+          ]
+        ]
+      }
+    },
+    {
+      "model": "random_forest_tuned",
+      "cv": {
+        "roc_auc": 0.8479963958941429,
+        "pr_auc_ap": 0.664275822628978,
+        "f1": 0.6324346985991756
+      },
+      "holdout": {
+        "roc_auc": 0.8448668268361363,
+        "pr_auc_ap": 0.6523327970424592,
+        "f1": 0.6331877729257642,
+        "precision": 0.5350553505535055,
+        "recall": 0.7754010695187166,
+        "confusion_matrix": [
+          [
+            783,
+            252
+          ],
+          [
+            84,
+            290
+          ]
+        ]
+      }
+    }
+  ]
+}
