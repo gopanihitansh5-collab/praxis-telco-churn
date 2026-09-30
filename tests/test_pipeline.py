@@ -86,3 +86,28 @@ def test_cli_error_exit():
     result = subprocess.run([sys.executable, 'predict.py'], input='{}', capture_output=True, text=True)
     assert result.returncode == 2
     assert 'Missing required fields' in json.loads(result.stderr)['error']
+
+
+def test_non_object_input():
+    with pytest.raises(ValueError, match='one JSON object'):
+        predict_customer([])
+
+
+def test_customer_id_does_not_affect_prediction(customer):
+    first = predict_customer(customer)
+    customer['customerID'] = 'different-identifier'
+    assert predict_customer(customer) == first
+
+
+def test_column_order_does_not_affect_prediction(customer):
+    assert predict_customer(dict(reversed(list(customer.items())))) == predict_customer(customer)
+
+
+def test_deterministic_bootstrap_intervals():
+    from telco_churn.diagnostics import bootstrap_intervals
+    y = np.array([0, 1, 0, 1, 0, 1])
+    p = np.array([0.1, 0.8, 0.2, 0.6, 0.7, 0.4])
+    a = bootstrap_intervals(y, p, repeats=30)
+    assert a == bootstrap_intervals(y, p, repeats=30)
+    for interval in a.values():
+        assert 0 <= interval['lower'] <= interval['upper'] <= 1

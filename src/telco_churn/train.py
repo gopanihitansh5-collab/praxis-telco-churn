@@ -15,6 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, StratifiedKFold, cross_validate
 from sklearn.metrics import (roc_auc_score, average_precision_score, f1_score,
                             precision_score, recall_score, confusion_matrix)
+from .diagnostics import create_diagnostics
 from .data import NUMERIC, CATEGORICAL, FEATURES, SEED, clean_features, load_split
 
 
@@ -74,6 +75,7 @@ def train(data_path, output_dir):
               'required_features': FEATURES, 'results': results}
     (output / 'metrics.json').write_text(json.dumps(report, indent=2) + '\n')
     pd.DataFrame(search.cv_results_).to_csv(output / 'cv_results.csv', index=False)
+    create_diagnostics(pipeline, X_test, y_test, output.parent / 'reports')
     return report
 
 

@@ -151,3 +151,31 @@ real customer intervention here. Joblib uses pickle internally: load only truste
 local artifacts, never arbitrary uploaded model files. The dataset page lists
 "Data files © Original Authors"; this repository links the data rather than
 relicensing or redistributing it.
+
+## Post-selection diagnostics
+
+`reports/diagnostics.json` and the two plots below add uncertainty, probability
+quality and raw-feature explainability without changing the selected model.
+
+| Fixed-model holdout metric | 95% percentile bootstrap interval (500 resamples) |
+|---|---:|
+| ROC-AUC | 0.8222-0.8669 |
+| Average precision | 0.5986-0.7037 |
+| F1 at 0.5 | 0.5923-0.6656 |
+
+These intervals include evaluation-sample variation only, not retraining or
+model-selection uncertainty. They are descriptive, not evidence of superiority
+over the baseline. Brier score is **0.1594** and log loss is **0.4750**. The
+reliability curve shows overestimated churn scores in several bins; probabilities
+must not be treated as calibrated business risk.
+
+![Evaluation and probability reliability](reports/evaluation_curves.png)
+
+![Raw-feature permutation importance](reports/permutation_importance.png)
+
+Permutation importance uses five shuffles per original feature and the decrease
+in holdout average precision. Contract, tenure and InternetService have the largest
+measured decreases. Correlated variables can share importance; these findings are
+associations, not causal recommendations. The holdout diagnostics must not be used
+to select new features or tune the next model. More honest improvement requires
+training-only validation or a fresh external/temporal sample.
