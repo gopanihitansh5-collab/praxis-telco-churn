@@ -67,7 +67,7 @@ ruff check src tests predict.py download_data.py
 ruff format --check src tests predict.py download_data.py
 ```
 
-Python 3.10/3.11 CI is configured to run contracts, model integrity, serialization, leakage-boundary
+Python 3.10/3.11 CI runs contracts, model integrity, serialization, leakage-boundary
 and CLI tests. Optional dependency tests skip unless installed. The saved estimator
 is fitted on training rows only, preserving the reported holdout boundary.
 

@@ -51,9 +51,8 @@ docker run --rm -p 127.0.0.1:8000:8000 telco-churn
 ```
 
 Python 3.11 slim image, installed package, only local model/manifest, non-root user.
-No dataset, notebook or private input goes into the image. Docker is unavailable in
-the local build environment; the CI container job builds and checks health and a
-real prediction. Consult that run before claiming a validated image. Image base
+No dataset, notebook or private input goes into the image. The CI container job builds the image and smoke-tests health plus a real prediction.
+Docker was unavailable for local testing; deployment and load testing remain out of scope. Image base
 is a tag, not a digest; scanning and digest pinning remain deployment work.
 The default image excludes SHAP/MLflow to avoid an unnecessarily large serving image.
 
