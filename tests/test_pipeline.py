@@ -122,3 +122,21 @@ def test_calibration_report_preserves_holdout_boundary():
     for name in ['raw_forest', 'sigmoid_calibrated_forest']:
         for metric in ['brier', 'roc_auc', 'average_precision', 'f1_at_0_5']:
             assert 0 <= report[name][metric] <= 1
+
+
+@pytest.mark.parametrize('field,value', [('tenure', [1]), ('MonthlyCharges', {'amount': 30}),
+                                        ('Partner', True), ('gender', ['Female']),
+                                        ('MonthlyCharges', True), ('tenure', 1.5)])
+def test_rejects_nested_and_wrong_scalar_types(customer, field, value):
+    customer[field] = value
+    with pytest.raises(ValueError):
+        predict_customer(customer)
+
+
+def test_cli_nested_input_returns_clear_error(customer):
+    customer['tenure'] = {'months': 1}
+    result = subprocess.run([sys.executable, 'predict.py'], input=json.dumps(customer),
+                            capture_output=True, text=True)
+    assert result.returncode == 2
+    assert 'tenure must be' in json.loads(result.stderr)['error']
+    assert 'Traceback' not in result.stderr

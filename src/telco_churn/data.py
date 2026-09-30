@@ -1,4 +1,5 @@
 """Deterministic raw-data validation and split shared by training and EDA."""
+from numbers import Real
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -19,6 +20,8 @@ def clean_features(frame):
         raise ValueError(f'Missing required fields: {missing}')
     out = frame[FEATURES].copy()
     for col in NUMERIC:
+        if not out[col].map(lambda x: x is None or isinstance(x, (str, Real)) and not isinstance(x, (bool, np.bool_))).all():
+            raise ValueError(f'{col} must be a numeric scalar, string or null')
         original = out[col].map(lambda x: np.nan if isinstance(x, str) and not x.strip() else x)
         converted = pd.to_numeric(original, errors='coerce')
         if (original.notna() & converted.isna()).any():
@@ -28,9 +31,13 @@ def clean_features(frame):
         if (converted.dropna() < 0).any():
             raise ValueError(f'{col} must be nonnegative')
         out[col] = converted
+    if not out['tenure'].dropna().map(lambda x: float(x).is_integer()).all():
+        raise ValueError('tenure must be a whole number of months')
     if not out['SeniorCitizen'].dropna().isin([0, 1]).all():
         raise ValueError('SeniorCitizen must be 0 or 1')
     for col in CATEGORICAL:
+        if not out[col].map(lambda x: x is None or isinstance(x, str) or isinstance(x, Real) and pd.isna(x)).all():
+            raise ValueError(f'{col} must be a string or null')
         out[col] = out[col].map(lambda x: np.nan if pd.isna(x) or str(x).strip() == '' else str(x).strip())
     return out
 

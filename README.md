@@ -209,3 +209,12 @@ alone. This remains an optional experiment; the reviewed baseline/default artifa
 is unchanged. A business threshold needs cost/value information and training-only
 validation, not retuning against the already inspected holdout. Full fold parameters
 and caveats are in `reports/calibration_experiment.json`.
+
+### Input contract checks
+
+Each inference request must be one object with all 19 feature keys. Numerical
+values may be numbers, numeric strings or null; booleans, arrays and objects
+are rejected. Tenure must be a nonnegative whole number of months and
+SeniorCitizen must be 0 or 1. Categorical values must be strings or null.
+Unseen strings are still allowed and encoded with `handle_unknown='ignore'`.
+Invalid requests return a JSON error on stderr with exit code 2, not a traceback.
