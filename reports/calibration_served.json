@@ -1,0 +1,33 @@
+{
+  "purpose": "Probability quality for the decision layer, not a new model selection.",
+  "selected_params": {
+    "max_depth": 6,
+    "max_features": 0.7,
+    "min_samples_leaf": 2
+  },
+  "outer_folds": 5,
+  "inner_calibration_folds": 3,
+  "rows": 5634,
+  "holdout_used": false,
+  "default_model_changed": false,
+  "uncalibrated": {
+    "brier": 0.15699774104945605,
+    "log_loss": 0.4691813722599383,
+    "roc_auc": 0.8466605686507573,
+    "average_precision": 0.6574518984254182
+  },
+  "calibrated": {
+    "brier": 0.1351617317417831,
+    "log_loss": 0.4175560038855836,
+    "roc_auc": 0.8465148788625368,
+    "average_precision": 0.6578994740532519
+  },
+  "mean_predicted_calibrated": 0.26463559937698006,
+  "observed_churn_rate": 0.2653532126375577,
+  "caveats": [
+    "Training-partition outer folds only; the 1,409-row holdout is untouched.",
+    "artifacts/model.joblib remains the reviewed default. The calibrated file is a separate opt-in artifact selected explicitly by path.",
+    "Sigmoid calibration with ensemble=True also averages several fitted models, so differences are not attributable to the sigmoid map alone.",
+    "Better in-sample Brier and log loss do not establish future calibration on new customers, and ranking metrics are largely unchanged by a monotone map."
+  ]
+}
