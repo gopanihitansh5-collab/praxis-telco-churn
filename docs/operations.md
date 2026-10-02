@@ -123,3 +123,77 @@ NotebookClient(nb, timeout=120, kernel_name='telco-churn',
 nbformat.write(nb, p)
 PY
 ```
+
+## Setup and path resolution
+
+```bash
+make setup          # venv, pinned deps, editable install
+make verify         # setup + test + lint + a real prediction
+make all            # verify + dataset + every report
+.\setup.ps1 -Reports   # the same on Windows PowerShell
+```
+
+`make help` lists every target. Python 3.10 or 3.11 is required, not preferred:
+`artifacts/model.manifest.json` records scikit-learn 1.7.2 and `artifact.load_model`
+fails closed on a version mismatch, so a newer interpreter with newer wheels cannot
+load the committed model. `setup.ps1` locates a supported interpreter and explains the
+pin rather than failing obscurely.
+
+`src/telco_churn/paths.py` resolves the dataset, model and report directories by walking
+up to the package root, so every command works from any working directory. Resolution
+order for the dataset is the explicit `--data` argument, then `$CHURN_DATA`, then
+`data/telco.csv`, then the current directory, then the local kagglehub cache. A missing
+dataset raises with the command that fixes it and the list of locations searched.
+
+## Dataset
+
+```bash
+make data                                  # Kaggle, verifies SHA-256
+python download_data.py --csv ~/telco.csv  # adopt a manual download, no network
+python download_data.py --force            # replace an existing copy
+```
+
+The CSV is deliberately not committed. It belongs to the Kaggle uploader and is not
+redistributed here; `data/README.md` records the source, version and expected hash.
+The download verifies against the SHA-256 recorded in `artifacts/metrics.json` and warns
+loudly on a mismatch rather than silently producing different metrics.
+
+## Decision layer and worklist
+
+```bash
+python -m telco_churn.calibrate            # calibrated artifact + out-of-fold scores
+python -m telco_churn.policy --probabilities artifacts/oof_probabilities.csv
+python -m telco_churn.score_batch          # ranked worklist, holdout by default
+python -m telco_churn.score_batch --budget 200 --top 200
+python -m telco_churn.score_batch --uplift 0.15 --offer-cost 30
+```
+
+`calibrate` must run before `policy`: the policy layer consumes out-of-fold
+probabilities, because in-sample scores from a fitted forest are near-separable and
+would make any expected-value estimate meaningless. Every economics field is a CLI
+override; `reports/policy.json` records the assumptions used alongside the results.
+
+`score_batch` writes `reports/worklist.csv` and a summary. It scores the holdout by
+default. `--partition all` scores the full file including rows the model was fitted on,
+which sets `scored_in_sample` and adds a caveat that the figures are optimistic.
+`--budget` suppresses contacts beyond the cap and never promotes a negative-value
+customer. `--uncalibrated` uses the reviewed default artifact instead.
+
+Neither command changes the served model. `artifacts/model_calibrated.joblib` is a
+separate opt-in file with its own manifest, selected explicitly by path, so the reported
+holdout boundary and model selection still stand.
+
+## Segment and cohort reports
+
+```bash
+python -m telco_churn.segments   # reports/segments.{json,md,png}
+python -m telco_churn.cohort     # reports/cohort_shift.{json,png}
+```
+
+`segments` is a holdout diagnostic and says so in its own report; it must not be used to
+select features or retune. `cohort` uses the training partition only. Both refuse to run
+on substitute data and exit with a clear message when the CSV is absent.
+
+Operationally the segment report is the one to read before trusting a score: the model
+flags almost nobody on one- and two-year contracts, so a low score there carries no
+information rather than meaning low risk.

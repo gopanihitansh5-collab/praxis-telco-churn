@@ -50,7 +50,8 @@ reports:
 	$(VPY) -m telco_churn.calibrate
 	$(VPY) -m telco_churn.segments
 	$(VPY) -m telco_churn.cohort
-	$(VPY) -m telco_churn.policy
+	$(VPY) -m telco_churn.policy --probabilities artifacts/oof_probabilities.csv
+	$(VPY) -m telco_churn.score_batch
 
 verify: setup test lint predict
 

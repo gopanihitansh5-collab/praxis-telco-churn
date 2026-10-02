@@ -95,10 +95,12 @@ if (-not $SkipTests) {
 
 if ($Reports) {
     Write-Host "`nRegenerating reports (this takes a few minutes) ..." -ForegroundColor Cyan
-    foreach ($m in @('calibrate', 'segments', 'cohort', 'policy')) {
-        Write-Host "  telco_churn.$m" -ForegroundColor DarkGray
-        & $venvPy -m "telco_churn.$m"
-    }
+    # policy consumes the out-of-fold file calibrate writes, so order matters here.
+    & $venvPy -m telco_churn.calibrate
+    & $venvPy -m telco_churn.segments
+    & $venvPy -m telco_churn.cohort
+    & $venvPy -m telco_churn.policy --probabilities artifacts/oof_probabilities.csv
+    & $venvPy -m telco_churn.score_batch
 }
 
 Write-Host "`nReady." -ForegroundColor Green
