@@ -1,0 +1,186 @@
+{
+  "experiment": "train on one tenure cohort, score the other; compared against a random stratified split of the same pooled rows at the same train/test sizes",
+  "boundary_months": 12,
+  "seed": 42,
+  "rows": 5634,
+  "rows_evaluated": 5634,
+  "excluded_missing_tenure": 0,
+  "holdout_used": false,
+  "default_model_changed": false,
+  "estimator": "RandomForestClassifier(class_weight='balanced', min_samples_leaf=8,\n                       n_estimators=150, n_jobs=1, random_state=42)",
+  "tuning": "none; one fixed configuration for every fit, no per-cohort search",
+  "cohorts": {
+    "established": {
+      "n": 3996,
+      "churn_rate": 0.17642642642642642,
+      "tenure_min": 12.0,
+      "tenure_max": 72.0,
+      "boundary_months": 12
+    },
+    "recent": {
+      "n": 1638,
+      "churn_rate": 0.4822954822954823,
+      "tenure_min": 0.0,
+      "tenure_max": 11.0,
+      "boundary_months": 12
+    }
+  },
+  "covariate_shift": {
+    "available": true,
+    "reference_cohort": "established",
+    "compared_cohort": "recent",
+    "features": {
+      "SeniorCitizen": {
+        "psi": 0.0028340231489592306,
+        "review_flag": false
+      },
+      "tenure": {
+        "psi": 7.561304287851928,
+        "review_flag": true
+      },
+      "MonthlyCharges": {
+        "psi": 0.5749756634313417,
+        "review_flag": true
+      },
+      "TotalCharges": {
+        "psi": 6.111491585154099,
+        "review_flag": true
+      }
+    },
+    "flagged_features": [
+      "MonthlyCharges",
+      "TotalCharges",
+      "tenure"
+    ],
+    "max_psi_excluding_tenure": 6.111491585154099,
+    "tenure_psi_is_definitional": true,
+    "caveat": "0.2 is a heuristic review flag, not a validated alert or proof of concept drift. Numeric-only prototype; no labels or automated retraining."
+  },
+  "cross_cohort_transfer": {
+    "established_to_recent": {
+      "n": 1638,
+      "churn_rate": 0.4822954822954823,
+      "roc_auc": 0.7707263553857178,
+      "average_precision": 0.7481436351598709,
+      "f1": 0.7099767981438515,
+      "precision": 0.6552462526766595,
+      "recall": 0.7746835443037975,
+      "train_n": 3996,
+      "train_churn_rate": 0.17642642642642642
+    },
+    "recent_to_established": {
+      "n": 3996,
+      "churn_rate": 0.17642642642642642,
+      "roc_auc": 0.7745264863769877,
+      "average_precision": 0.42136608955357513,
+      "f1": 0.4510460251046025,
+      "precision": 0.31988130563798217,
+      "recall": 0.7645390070921986,
+      "train_n": 1638,
+      "train_churn_rate": 0.4822954822954823
+    }
+  },
+  "within_cohort_reference": {
+    "established": {
+      "n": 3996,
+      "churn_rate": 0.17642642642642642,
+      "roc_auc": 0.8273550689501348,
+      "average_precision": 0.4778226135761703,
+      "f1": 0.5249062667380825,
+      "precision": 0.42168674698795183,
+      "recall": 0.6950354609929078,
+      "folds": 3
+    },
+    "recent": {
+      "n": 1638,
+      "churn_rate": 0.4822954822954823,
+      "roc_auc": 0.7898443097683305,
+      "average_precision": 0.7584387373269983,
+      "f1": 0.7128834355828221,
+      "precision": 0.6916666666666667,
+      "recall": 0.7354430379746836,
+      "folds": 3
+    }
+  },
+  "random_split_control": {
+    "established_to_recent": {
+      "n": 1638,
+      "train_n": 3996,
+      "repeats": 3,
+      "churn_rate": 0.26556776556776557,
+      "roc_auc": 0.8357407885140279,
+      "average_precision": 0.6419639882483636,
+      "f1": 0.6152368689602162,
+      "precision": 0.5279524920527404,
+      "recall": 0.7371647509578544,
+      "per_repeat_roc_auc": [
+        0.8433962985257164,
+        0.8337422726708134,
+        0.8300837943455538
+      ]
+    },
+    "recent_to_established": {
+      "n": 3996,
+      "train_n": 1638,
+      "repeats": 3,
+      "churn_rate": 0.2652652652652653,
+      "roc_auc": 0.8409725613935873,
+      "average_precision": 0.6487907645769986,
+      "f1": 0.6298046707356529,
+      "precision": 0.5411630224561589,
+      "recall": 0.7537735849056605,
+      "per_repeat_roc_auc": [
+        0.8473124775075832,
+        0.84255420672459,
+        0.8330509999485888
+      ]
+    }
+  },
+  "gap_summary": {
+    "established_to_recent": {
+      "roc_auc": {
+        "transfer": 0.7707263553857178,
+        "random_split_control": 0.8357407885140279,
+        "within_cohort": 0.7898443097683305,
+        "transfer_minus_control": -0.06501443312831012,
+        "transfer_minus_within_cohort": -0.019117954382612767
+      },
+      "average_precision": {
+        "transfer": 0.7481436351598709,
+        "random_split_control": 0.6419639882483636,
+        "within_cohort": 0.7584387373269983,
+        "transfer_minus_control": 0.10617964691150727,
+        "transfer_minus_within_cohort": -0.010295102167127368
+      }
+    },
+    "recent_to_established": {
+      "roc_auc": {
+        "transfer": 0.7745264863769877,
+        "random_split_control": 0.8409725613935873,
+        "within_cohort": 0.8273550689501348,
+        "transfer_minus_control": -0.0664460750165996,
+        "transfer_minus_within_cohort": -0.05282858257314704
+      },
+      "average_precision": {
+        "transfer": 0.42136608955357513,
+        "random_split_control": 0.6487907645769986,
+        "within_cohort": 0.4778226135761703,
+        "transfer_minus_control": -0.22742467502342345,
+        "transfer_minus_within_cohort": -0.056456524022595156
+      }
+    }
+  },
+  "caveats": [
+    "Tenure is a PROXY for arrival cohort, not a timestamp. This dataset has no dates, so nothing here is temporal validation and no claim about future periods follows from it.",
+    "CONFOUND: short-tenure customers churn far more and tenure is itself one of the strongest predictors, so a transfer drop mixes covariate shift with the intrinsic difficulty of the new-customer segment.",
+    "transfer_minus_within_cohort holds the scored cohort fixed and isolates the effect of the training source, but the within-cohort model trains on fewer rows, so part of that difference is sample size.",
+    "transfer_minus_control holds train/test sizes and the pooled population fixed and keeps both effects together; it is the comparison that answers 'does cohort structure cost anything a random split would not show'.",
+    "Compare against random_split_control, never against the headline holdout ROC-AUC: that figure comes from a different sample size, a different population and a tuned model.",
+    "within_cohort_reference is 3-fold out-of-fold prediction inside a single cohort; it is an in-distribution reference, not a deployable score.",
+    "Tenure PSI between the cohorts is definitional because the split is on tenure. Only max_psi_excluding_tenure is evidence of genuine covariate shift, and 0.2 remains a heuristic flag.",
+    "No hyperparameter search anywhere, so every score here is below what the tuned bundled forest reports for that reason alone.",
+    "Rows with missing tenure belong to no cohort and were removed from the transfer arms, the within-cohort references and the control pool alike.",
+    "One boundary, one seed family, no confidence intervals. This is a diagnostic, not a monitoring policy or a retraining trigger.",
+    "Original training partition only; the 1,409-row holdout is untouched and the bundled default model is unchanged."
+  ]
+}
