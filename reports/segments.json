@@ -1,0 +1,433 @@
+{
+  "rows": 1409,
+  "threshold": 0.5,
+  "min_rows": 30,
+  "holdout_used": true,
+  "default_model_changed": false,
+  "tenure_band_edges_months": {
+    "inclusive_upper_bounds": [
+      6,
+      12,
+      24,
+      48
+    ],
+    "labels": [
+      "0-6",
+      "7-12",
+      "13-24",
+      "25-48",
+      "49+"
+    ],
+    "missing_tenure_level": "unknown"
+  },
+  "overall": {
+    "n": 1409,
+    "churn_count": 374,
+    "churn_rate": 0.2654364797728886,
+    "flagged": 542,
+    "roc_auc": 0.8448668268361363,
+    "average_precision": 0.6523327970424592,
+    "precision": 0.5350553505535055,
+    "recall": 0.7754010695187166,
+    "f1": 0.6331877729257642,
+    "lift": 2.0157566548927517,
+    "single_class": false,
+    "reason": null
+  },
+  "segmentations": {
+    "Contract": {
+      "Month-to-month": {
+        "n": 773,
+        "churn_count": 329,
+        "churn_rate": 0.425614489003881,
+        "flagged": 538,
+        "roc_auc": 0.752625345710452,
+        "average_precision": 0.6857077206506069,
+        "precision": 0.5390334572490706,
+        "recall": 0.8814589665653495,
+        "f1": 0.6689734717416378,
+        "lift": 1.2664828646003998,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "One year": {
+        "n": 300,
+        "churn_count": 36,
+        "churn_rate": 0.12,
+        "flagged": 4,
+        "roc_auc": 0.7382154882154881,
+        "average_precision": 0.25905583324965975,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "lift": 0.0,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "Two year": {
+        "n": 336,
+        "churn_count": 9,
+        "churn_rate": 0.026785714285714284,
+        "flagged": 0,
+        "roc_auc": 0.7658851512062521,
+        "average_precision": 0.07581147873344714,
+        "precision": null,
+        "recall": 0.0,
+        "f1": 0.0,
+        "lift": null,
+        "single_class": false,
+        "reason": "no customers scored at or above the threshold: precision, F1 and lift undefined",
+        "insufficient_rows": false
+      }
+    },
+    "InternetService": {
+      "DSL": {
+        "n": 484,
+        "churn_count": 97,
+        "churn_rate": 0.20041322314049587,
+        "flagged": 115,
+        "roc_auc": 0.8308958682969712,
+        "average_precision": 0.5839179958354498,
+        "precision": 0.5304347826086957,
+        "recall": 0.6288659793814433,
+        "f1": 0.5754716981132075,
+        "lift": 2.6467055132227704,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "Fiber optic": {
+        "n": 613,
+        "churn_count": 252,
+        "churn_rate": 0.4110929853181077,
+        "flagged": 399,
+        "roc_auc": 0.7812348854592621,
+        "average_precision": 0.7034721814162014,
+        "precision": 0.5463659147869674,
+        "recall": 0.8650793650793651,
+        "f1": 0.6697388632872504,
+        "lift": 1.3290567689063928,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "No": {
+        "n": 312,
+        "churn_count": 25,
+        "churn_rate": 0.08012820512820513,
+        "flagged": 28,
+        "roc_auc": 0.8818118466898955,
+        "average_precision": 0.3367088691808381,
+        "precision": 0.39285714285714285,
+        "recall": 0.44,
+        "f1": 0.41509433962264153,
+        "lift": 4.902857142857142,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      }
+    },
+    "SeniorCitizen": {
+      "0": {
+        "n": 1187,
+        "churn_count": 276,
+        "churn_rate": 0.2325189553496209,
+        "flagged": 401,
+        "roc_auc": 0.846338630904087,
+        "average_precision": 0.6248542891846363,
+        "precision": 0.5087281795511222,
+        "recall": 0.7391304347826086,
+        "f1": 0.6026587887740029,
+        "lift": 2.1878998156781955,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "1": {
+        "n": 222,
+        "churn_count": 98,
+        "churn_rate": 0.44144144144144143,
+        "flagged": 141,
+        "roc_auc": 0.7860845951283739,
+        "average_precision": 0.7188060718021405,
+        "precision": 0.6099290780141844,
+        "recall": 0.8775510204081632,
+        "f1": 0.7196652719665272,
+        "lift": 1.3816760746851933,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      }
+    },
+    "PaymentMethod": {
+      "Bank transfer (automatic)": {
+        "n": 300,
+        "churn_count": 57,
+        "churn_rate": 0.19,
+        "flagged": 62,
+        "roc_auc": 0.8687459389213774,
+        "average_precision": 0.650548018444586,
+        "precision": 0.5806451612903226,
+        "recall": 0.631578947368421,
+        "f1": 0.6050420168067226,
+        "lift": 3.0560271646859083,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "Credit card (automatic)": {
+        "n": 309,
+        "churn_count": 51,
+        "churn_rate": 0.1650485436893204,
+        "flagged": 70,
+        "roc_auc": 0.8590211278309774,
+        "average_precision": 0.5620753948927081,
+        "precision": 0.45714285714285713,
+        "recall": 0.6274509803921569,
+        "f1": 0.5289256198347108,
+        "lift": 2.769747899159664,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "Electronic check": {
+        "n": 474,
+        "churn_count": 206,
+        "churn_rate": 0.4345991561181435,
+        "flagged": 312,
+        "roc_auc": 0.7800499927546732,
+        "average_precision": 0.7263487651385131,
+        "precision": 0.5769230769230769,
+        "recall": 0.8737864077669902,
+        "f1": 0.694980694980695,
+        "lift": 1.3274831964152352,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "Mailed check": {
+        "n": 326,
+        "churn_count": 60,
+        "churn_rate": 0.18404907975460122,
+        "flagged": 98,
+        "roc_auc": 0.8240914786967419,
+        "average_precision": 0.46794715695878736,
+        "precision": 0.42857142857142855,
+        "recall": 0.7,
+        "f1": 0.5316455696202531,
+        "lift": 2.3285714285714287,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      }
+    },
+    "tenure_band": {
+      "0-6": {
+        "n": 311,
+        "churn_count": 173,
+        "churn_rate": 0.5562700964630225,
+        "flagged": 254,
+        "roc_auc": 0.753099606266231,
+        "average_precision": 0.7751168890478015,
+        "precision": 0.6338582677165354,
+        "recall": 0.930635838150289,
+        "f1": 0.7540983606557377,
+        "lift": 1.1394793136407082,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "7-12": {
+        "n": 138,
+        "churn_count": 42,
+        "churn_rate": 0.30434782608695654,
+        "flagged": 62,
+        "roc_auc": 0.7373511904761905,
+        "average_precision": 0.5531200616256929,
+        "precision": 0.46774193548387094,
+        "recall": 0.6904761904761905,
+        "f1": 0.5576923076923077,
+        "lift": 1.5368663594470044,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "13-24": {
+        "n": 206,
+        "churn_count": 60,
+        "churn_rate": 0.2912621359223301,
+        "flagged": 104,
+        "roc_auc": 0.8191780821917807,
+        "average_precision": 0.6473795535925518,
+        "precision": 0.4807692307692308,
+        "recall": 0.8333333333333334,
+        "f1": 0.6097560975609756,
+        "lift": 1.6506410256410258,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "25-48": {
+        "n": 304,
+        "churn_count": 64,
+        "churn_rate": 0.21052631578947367,
+        "flagged": 91,
+        "roc_auc": 0.7796223958333333,
+        "average_precision": 0.4718790947250178,
+        "precision": 0.43956043956043955,
+        "recall": 0.625,
+        "f1": 0.5161290322580645,
+        "lift": 2.087912087912088,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      },
+      "49+": {
+        "n": 450,
+        "churn_count": 35,
+        "churn_rate": 0.07777777777777778,
+        "flagged": 31,
+        "roc_auc": 0.8256110154905336,
+        "average_precision": 0.32963218823277063,
+        "precision": 0.3225806451612903,
+        "recall": 0.2857142857142857,
+        "f1": 0.30303030303030304,
+        "lift": 4.147465437788019,
+        "single_class": false,
+        "reason": null,
+        "insufficient_rows": false
+      }
+    }
+  },
+  "caveats": [
+    "These are post-selection holdout diagnostics, not a basis for selecting features or retuning on this holdout.",
+    "Segment metrics at small n are high-variance; a difference between two segments is not evidence of a real performance gap, and not evidence of unfairness, without interval estimates.",
+    "This is a performance breakdown, not a fairness audit and not a legal compliance assessment.",
+    "No protected-attribute conclusion follows from SeniorCitizen or gender; SeniorCitizen appears here only as a reporting cut.",
+    "Lift is measured at the reporting threshold on one fixed holdout sample and is not a validated campaign return.",
+    "Segments flagged insufficient_rows or single_class are reported, not dropped, and their metrics must not be quoted as performance."
+  ],
+  "weakest_segments": [
+    {
+      "segmentation": "Contract",
+      "level": "Two year",
+      "n": 336,
+      "churn_rate": 0.026785714285714284,
+      "average_precision": 0.07581147873344714
+    },
+    {
+      "segmentation": "Contract",
+      "level": "One year",
+      "n": 300,
+      "churn_rate": 0.12,
+      "average_precision": 0.25905583324965975
+    },
+    {
+      "segmentation": "tenure_band",
+      "level": "49+",
+      "n": 450,
+      "churn_rate": 0.07777777777777778,
+      "average_precision": 0.32963218823277063
+    },
+    {
+      "segmentation": "InternetService",
+      "level": "No",
+      "n": 312,
+      "churn_rate": 0.08012820512820513,
+      "average_precision": 0.3367088691808381
+    },
+    {
+      "segmentation": "PaymentMethod",
+      "level": "Mailed check",
+      "n": 326,
+      "churn_rate": 0.18404907975460122,
+      "average_precision": 0.46794715695878736
+    },
+    {
+      "segmentation": "tenure_band",
+      "level": "25-48",
+      "n": 304,
+      "churn_rate": 0.21052631578947367,
+      "average_precision": 0.4718790947250178
+    },
+    {
+      "segmentation": "tenure_band",
+      "level": "7-12",
+      "n": 138,
+      "churn_rate": 0.30434782608695654,
+      "average_precision": 0.5531200616256929
+    },
+    {
+      "segmentation": "PaymentMethod",
+      "level": "Credit card (automatic)",
+      "n": 309,
+      "churn_rate": 0.1650485436893204,
+      "average_precision": 0.5620753948927081
+    },
+    {
+      "segmentation": "InternetService",
+      "level": "DSL",
+      "n": 484,
+      "churn_rate": 0.20041322314049587,
+      "average_precision": 0.5839179958354498
+    },
+    {
+      "segmentation": "SeniorCitizen",
+      "level": "0",
+      "n": 1187,
+      "churn_rate": 0.2325189553496209,
+      "average_precision": 0.6248542891846363
+    },
+    {
+      "segmentation": "tenure_band",
+      "level": "13-24",
+      "n": 206,
+      "churn_rate": 0.2912621359223301,
+      "average_precision": 0.6473795535925518
+    },
+    {
+      "segmentation": "PaymentMethod",
+      "level": "Bank transfer (automatic)",
+      "n": 300,
+      "churn_rate": 0.19,
+      "average_precision": 0.650548018444586
+    },
+    {
+      "segmentation": "Contract",
+      "level": "Month-to-month",
+      "n": 773,
+      "churn_rate": 0.425614489003881,
+      "average_precision": 0.6857077206506069
+    },
+    {
+      "segmentation": "InternetService",
+      "level": "Fiber optic",
+      "n": 613,
+      "churn_rate": 0.4110929853181077,
+      "average_precision": 0.7034721814162014
+    },
+    {
+      "segmentation": "SeniorCitizen",
+      "level": "1",
+      "n": 222,
+      "churn_rate": 0.44144144144144143,
+      "average_precision": 0.7188060718021405
+    },
+    {
+      "segmentation": "PaymentMethod",
+      "level": "Electronic check",
+      "n": 474,
+      "churn_rate": 0.4345991561181435,
+      "average_precision": 0.7263487651385131
+    },
+    {
+      "segmentation": "tenure_band",
+      "level": "0-6",
+      "n": 311,
+      "churn_rate": 0.5562700964630225,
+      "average_precision": 0.7751168890478015
+    }
+  ]
+}
