@@ -55,7 +55,7 @@ change the included inference model or use the 1,409 holdout rows.
 The measured probability-quality improvement is useful, but F1 at 0.5 decreases.
 Calibration is not a free improvement to every metric. The calibrated variant also
 averages multiple fitted models, so differences are not caused by the sigmoid map
-alone. The reviewed default artifact is unchanged. A business threshold needs cost/value information and training-only
+alone. The served default artifact is unchanged. A business threshold needs cost/value information and training-only
 validation, not retuning against the already inspected holdout. Full fold parameters
 and caveats are in `reports/calibration_experiment.json`.
 
@@ -66,7 +66,7 @@ and caveats are in `reports/calibration_experiment.json`.
 The three outer-fold thresholds are 0.51, 0.55 and 0.53. At outer evaluation,
 F1 is 0.6319 at fixed 0.5 and 0.6334 with inner-OOF F1 selection. Precision
 rises from 0.5339 to 0.5497 while recall falls from 0.7739 to 0.7472. This
-small difference is not proof of superiority. Keep the reviewed default 0.5 rather
+small difference is not proof of superiority. Keep the served default 0.5 rather
 than advertising a tuned threshold as an upgrade. No holdout rows were used.
 The threshold objectives here ignore retention cost/value; no business policy
 can be inferred from these scores.

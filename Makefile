@@ -10,7 +10,7 @@ endif
 VPY := $(BIN)/python
 
 .DEFAULT_GOAL := help
-.PHONY: help setup data predict serve test lint reports policy clean verify all
+.PHONY: help setup data predict serve test lint reports policy worklist clean verify all
 
 help:
 	@echo "setup    Create .venv and install pinned dependencies"
@@ -20,6 +20,9 @@ help:
 	@echo "test     Run the test suite"
 	@echo "lint     Run ruff check and format check"
 	@echo "reports  Regenerate calibration, policy, segment and cohort reports (needs data)"
+	@echo "policy   Rebuild the expected-value policy report from artifacts/oof_probabilities.csv"
+	@echo "worklist Rebuild the ranked retention worklist (needs data)"
+	@echo "clean    Remove .venv, caches and build metadata"
 	@echo "verify   setup + test + lint + predict, the full offline check"
 	@echo "all      verify + data + reports"
 
@@ -51,6 +54,14 @@ reports:
 	$(VPY) -m telco_churn.segments
 	$(VPY) -m telco_churn.cohort
 	$(VPY) -m telco_churn.policy --probabilities artifacts/oof_probabilities.csv
+	$(VPY) -m telco_churn.score_batch
+
+# policy consumes the out-of-fold file calibrate writes, so run reports (or calibrate)
+# first if artifacts/oof_probabilities.csv is missing.
+policy:
+	$(VPY) -m telco_churn.policy --probabilities artifacts/oof_probabilities.csv
+
+worklist:
 	$(VPY) -m telco_churn.score_batch
 
 verify: setup test lint predict

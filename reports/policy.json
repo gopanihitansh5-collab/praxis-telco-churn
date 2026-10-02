@@ -1173,7 +1173,7 @@
     "Cells with value_positive false are regions where the programme earns nothing: at low uplift or high offer cost no threshold beats contacting nobody.",
     "A probability threshold can still contact a low-margin customer whose own expected value is negative; per_customer_ev_rule is the only reported policy that never does.",
     "Uplift is assumed identical for every customer. Real uplift varies and cannot be estimated without a randomised holdback, which this dataset does not contain.",
-    "Customers with missing MonthlyCharges carry zero retained value by construction and are therefore never contacted."
+    "Customers whose MonthlyCharges is missing or non-numeric carry zero retained value by construction and are therefore never contacted."
   ],
   "sensitivity": [
     {

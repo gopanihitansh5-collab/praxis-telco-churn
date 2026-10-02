@@ -3,6 +3,8 @@ import numpy as np
 import pytest
 from telco_churn.policy import (
     DEFAULTS,
+    MISSING_INPUT,
+    OOF_PROBABILITIES,
     THRESHOLDS,
     Economics,
     break_even_probability,
@@ -249,3 +251,40 @@ def test_yes_no_labels_are_accepted():
     assert policy_curve(prob, charges, labels, DEFAULTS) == policy_curve(
         prob, charges, words, DEFAULTS
     )
+
+
+def test_missing_input_message_names_a_module_that_writes_per_row_scores():
+    assert "telco_churn.calibrate\n" in MISSING_INPUT
+    assert OOF_PROBABILITIES in MISSING_INPUT
+    # The aggregate studies may be named only as modules that cannot supply the input.
+    assert "cannot be used" in MISSING_INPUT
+
+
+def test_non_numeric_monthly_charges_carry_no_value():
+    prob = np.array([0.9, 0.9, 0.9])
+    charges = np.array(["100.0", "N/A", "-"], dtype=object)
+    labels = np.array([1, 1, 1])
+    values = retained_values(charges, DEFAULTS)
+    assert values.tolist() == [360.0, 0.0, 0.0]
+    report = optimal_policy(prob, charges, labels, DEFAULTS)
+    assert report["missing_monthly_charges"] == 2
+    assert report["baselines"]["per_customer_ev_rule"]["contacted"] == 1
+
+
+def test_percentage_probability_column_is_rejected():
+    prob, charges, labels = synthetic(50)
+    with pytest.raises(ValueError, match=r"probability spans .*outside \[0, 1\]"):
+        optimal_policy(prob * 100.0, charges, labels, DEFAULTS)
+
+
+@pytest.mark.parametrize("bad", [-0.01, 1.01])
+def test_out_of_range_probability_is_rejected(bad):
+    with pytest.raises(ValueError, match="outside"):
+        policy_curve([0.5, bad], [50.0, 50.0], [1, 0], DEFAULTS)
+    with pytest.raises(ValueError, match="outside"):
+        customer_expected_value([bad], [50.0], DEFAULTS)
+
+
+def test_non_numeric_probability_is_rejected_with_a_clear_message():
+    with pytest.raises(ValueError, match="probability has 1 non-numeric"):
+        policy_curve(["0.5", "N/A"], [50.0, 50.0], [1, 0], DEFAULTS)

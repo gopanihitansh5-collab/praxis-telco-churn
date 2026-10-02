@@ -25,6 +25,7 @@ from sklearn.metrics import (
 )
 from .data import SEED, load_split
 from .drift import compare, make_reference
+from .paths import reports_dir, resolve_dataset
 from .train import make_pipeline
 
 COHORT_SPLIT_MONTHS = 12
@@ -73,9 +74,9 @@ def _scores(y: pd.Series, probability: np.ndarray) -> dict:
         "churn_rate": float(np.mean(y)),
         "roc_auc": float(roc_auc_score(y, probability)),
         "average_precision": float(average_precision_score(y, probability)),
-        "f1": float(f1_score(y, pred)),
+        "f1": float(f1_score(y, pred, zero_division=0)),
         "precision": float(precision_score(y, pred, zero_division=0)),
-        "recall": float(recall_score(y, pred)),
+        "recall": float(recall_score(y, pred, zero_division=0)),
     }
 
 
@@ -307,7 +308,7 @@ def evaluate_shift(
     }
 
 
-def create_chart(report: dict, output_dir: str | Path = "reports") -> Path:
+def create_chart(report: dict, output_dir: str | Path | None = None) -> Path:
     directions = ["established_to_recent", "recent_to_established"]
     labels = ["Train established\nscore recent", "Train recent\nscore established"]
     series = [
@@ -332,7 +333,7 @@ def create_chart(report: dict, output_dir: str | Path = "reports") -> Path:
         ax.set_xticks(positions, labels, fontsize=8)
     axes[0].legend(fontsize=8)
     fig.tight_layout()
-    out = Path(output_dir)
+    out = Path(output_dir) if output_dir else reports_dir()
     out.mkdir(parents=True, exist_ok=True)
     path = out / "cohort_shift.png"
     fig.savefig(path, dpi=150, bbox_inches="tight")
@@ -342,18 +343,20 @@ def create_chart(report: dict, output_dir: str | Path = "reports") -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", default="data/telco.csv")
+    parser.add_argument("--data", default=None, help="Raw Telco CSV path")
     parser.add_argument("--boundary", type=int, default=COHORT_SPLIT_MONTHS)
-    parser.add_argument("--output", default="reports/cohort_shift.json")
+    parser.add_argument("--output", default=None, help="Report JSON path")
     args = parser.parse_args()
-    if not Path(args.data).exists():
+    try:
+        data_path = resolve_dataset(args.data)
+    except FileNotFoundError as exc:
+        # This study never fabricates or substitutes data, so a missing CSV stops it.
         raise SystemExit(
-            f"{args.data} not found. Fetch the real dataset with download_data.py; "
-            "this study never fabricates or substitutes data."
-        )
-    X_train, _, y_train, _ = load_split(args.data)
+            f"{exc}\n\nThis study never fabricates or substitutes data."
+        ) from exc
+    X_train, _, y_train, _ = load_split(data_path)
     report = evaluate_shift(X_train, y_train, args.boundary)
-    output = Path(args.output)
+    output = Path(args.output) if args.output else reports_dir() / "cohort_shift.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2) + "\n")
     create_chart(report, output.parent)

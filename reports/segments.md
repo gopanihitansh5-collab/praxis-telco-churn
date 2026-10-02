@@ -6,7 +6,7 @@ Blended holdout average precision is **0.652** and ROC-AUC is **0.845** over all
 
 | Segmentation | Level | n | Churn rate | ROC-AUC | AP | Precision | Recall | F1 | Lift | Flags |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| Contract | Two year | 336 | 0.027 | 0.766 | 0.076 | n/a | 0.000 | 0.000 | n/a | - |
+| Contract | Two year | 336 | 0.027 | 0.766 | 0.076 | n/a | 0.000 | n/a | n/a | - |
 | Contract | One year | 300 | 0.120 | 0.738 | 0.259 | 0.000 | 0.000 | 0.000 | 0.00 | - |
 | tenure_band | 49+ | 450 | 0.078 | 0.826 | 0.330 | 0.323 | 0.286 | 0.303 | 4.15 | - |
 | InternetService | No | 312 | 0.080 | 0.882 | 0.337 | 0.393 | 0.440 | 0.415 | 4.90 | - |

@@ -25,6 +25,7 @@ from sklearn.metrics import (
 from .artifact import write_manifest
 from .diagnostics import create_diagnostics
 from .data import NUMERIC, CATEGORICAL, FEATURES, SEED, clean_features, load_split
+from .paths import artifacts_dir, resolve_dataset
 
 
 def make_pipeline(model):
@@ -153,19 +154,24 @@ def train(data_path, output_dir):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", default="data/telco.csv")
-    parser.add_argument("--output", default="artifacts")
+    parser.add_argument("--data", default=None, help="Raw Telco CSV path")
+    parser.add_argument("--output", default=None, help="Artifact directory")
     parser.add_argument(
         "--tracking-uri",
         default=None,
         help="Opt-in MLflow URI; use a local file URI for private runs",
     )
     args = parser.parse_args()
-    report = train(args.data, args.output)
+    try:
+        data_path = resolve_dataset(args.data)
+    except FileNotFoundError as exc:
+        raise SystemExit(str(exc)) from exc
+    output = Path(args.output) if args.output else artifacts_dir()
+    report = train(data_path, output)
     if args.tracking_uri:
         from .tracking import track_report
 
-        report["mlflow_run_id"] = track_report(report, args.output, args.tracking_uri)
+        report["mlflow_run_id"] = track_report(report, output, args.tracking_uri)
     print(json.dumps(report, indent=2))
 
 

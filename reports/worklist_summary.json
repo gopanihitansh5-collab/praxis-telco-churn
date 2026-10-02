@@ -24,6 +24,6 @@
     "Customers on one- and two-year contracts are scored, but the model flags almost none of them at any usual cutoff; see reports/segments.json before reading a low rank there as low risk.",
     "A cheaper channel than a call would need its own cost inputs; only one contact channel is modelled here."
   ],
-  "input": "C:\\Users\\rcgop\\Downloads\\praxis-telco-churn-main\\praxis-telco-churn-main\\data\\telco.csv",
-  "model": "C:\\Users\\rcgop\\Downloads\\praxis-telco-churn-main\\praxis-telco-churn-main\\artifacts\\model_calibrated.joblib"
+  "input": "data/telco.csv",
+  "model": "artifacts/model_calibrated.joblib"
 }

@@ -29,7 +29,7 @@ should not be trusted. Each is reproducible by one command.
 |---|---|---|---|
 | Expected-value decision layer | Which customers are worth contacting, and when is the programme worth nothing? | `reports/policy.json`, `src/telco_churn/policy.py` | Assumptions are inputs; 8 of 25 combinations return nothing |
 | Per-customer rule vs threshold | Is a single cutoff the right instrument at all? | Policy baselines: 21,123 vs 18,201 best threshold | Arithmetic on stated assumptions, not a forecast |
-| Calibrated artifact | Are the probabilities usable as risk levels? | `reports/calibration_served.json`; mean 0.3928 to 0.2646 against 0.2654 observed | Opt-in file; reviewed default unchanged |
+| Calibrated artifact | Are the probabilities usable as risk levels? | `reports/calibration_served.json`; mean 0.3928 to 0.2646 against 0.2654 observed | Opt-in file; served default unchanged |
 | Segment breakdown | Where is the model unusable? | `reports/segments.md`; zero flagged on two-year contracts | Holdout diagnostic; not a fairness audit |
 | Cohort transfer | Does it hold up on newer customers? | `reports/cohort_shift.json`; 0.771 vs 0.836 control | Tenure proxies cohort, not time |
 | Ranked worklist | What does a retention team actually receive? | `reports/worklist.csv` | Priorities for review, not approved actions |

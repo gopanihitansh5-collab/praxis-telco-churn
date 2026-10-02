@@ -15,7 +15,7 @@ from .policy import (
     customer_expected_value,
     retained_values,
 )
-from .paths import resolve_dataset, resolve_model
+from .paths import project_root, resolve_dataset, resolve_model
 
 COLUMNS = [
     "rank",
@@ -83,6 +83,16 @@ def select_partition(source: str | Path, frame: pd.DataFrame, partition: str) ->
     if index is None:
         return {"frame": frame, "in_sample": True}
     return {"frame": frame.loc[index], "in_sample": partition == "train"}
+
+
+def relative_path(path: str | Path) -> str:
+    """Path relative to the project root; an absolute one is local to one machine."""
+    resolved = Path(path).expanduser().resolve()
+    try:
+        return resolved.relative_to(project_root().resolve()).as_posix()
+    except ValueError:
+        # Outside the project root, so no relative form exists that stays inside it.
+        return resolved.name
 
 
 def apply_budget(ranked: pd.DataFrame, budget: int | None) -> pd.DataFrame:
@@ -201,14 +211,20 @@ def main() -> None:
     # export from silently becoming a feature.
     labelled = "Churn" in frame.columns
     frame = frame.drop(columns=[c for c in ("Churn",) if c in frame.columns])
-    in_sample = True
+    # Only the bundled dataset's split is known, so an external file is never claimed to
+    # be in-sample: whether its rows overlap the training rows is not knowable here.
+    in_sample = args.input is None
     if args.input is None and labelled:
         # The bundled CSV contains the rows the model was fitted on. Scoring those is
         # in-sample and inflates every expected value, so the holdout is the default.
         selection = select_partition(source, frame, args.partition)
         frame, in_sample = selection["frame"], selection["in_sample"]
     elif args.partition != "holdout":
-        raise SystemExit("--partition applies to the bundled dataset, not --input.")
+        raise SystemExit(
+            "--partition selects rows of the bundled labelled dataset's train/test split."
+            " An external --input file, or a dataset with no Churn column, has no such"
+            " split and is scored in full; omit --partition."
+        )
     model_path = resolve_model(args.model, calibrated=not args.uncalibrated)
     if not Path(model_path).exists():
         raise SystemExit(
@@ -218,8 +234,8 @@ def main() -> None:
         )
     ranked = apply_budget(score(frame, load_model(model_path), economics), args.budget)
     report = summarize(ranked, economics, args.budget, in_sample)
-    report["input"] = str(source)
-    report["model"] = str(model_path)
+    report["input"] = relative_path(source)
+    report["model"] = relative_path(model_path)
 
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)

@@ -19,6 +19,22 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 
+function Invoke-Step {
+    # 'Stop' does not trap nonzero exit codes from native executables in Windows
+    # PowerShell, so every python/pip/pytest/ruff call runs through here instead.
+    param(
+        [Parameter(Mandatory = $true)][string]$Label,
+        [Parameter(Mandatory = $true)][scriptblock]$Command
+    )
+    & $Command
+    # Only meaningful because every scriptblock below ends in a native command.
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host ""
+        Write-Host "FAILED: $Label (exit code $LASTEXITCODE)" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
+
 function Find-Python {
     # py launcher first: it is the reliable way to request an exact minor version.
     foreach ($v in @('3.11', '3.10')) {
@@ -63,14 +79,14 @@ Write-Host "Using interpreter: $python" -ForegroundColor Cyan
 $venvPy = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
 if (-not (Test-Path $venvPy)) {
     Write-Host "Creating .venv ..." -ForegroundColor Cyan
-    & $python -m venv .venv
+    Invoke-Step 'create .venv' { & $python -m venv .venv }
 }
 
 Write-Host "Installing pinned dependencies ..." -ForegroundColor Cyan
-& $venvPy -m pip install --upgrade pip --quiet
-& $venvPy -m pip install -r requirements-dev.txt
-& $venvPy -m pip install -e . --quiet
-& $venvPy -m pip check
+Invoke-Step 'pip install --upgrade pip' { & $venvPy -m pip install --upgrade pip --quiet }
+Invoke-Step 'pip install -r requirements-dev.txt' { & $venvPy -m pip install -r requirements-dev.txt }
+Invoke-Step 'pip install -e .' { & $venvPy -m pip install -e . --quiet }
+Invoke-Step 'pip check' { & $venvPy -m pip check }
 
 if ($Reports) { $Data = $true }
 
@@ -79,28 +95,28 @@ if ($Data) {
         Write-Host "data\telco.csv already present; skipping download." -ForegroundColor Yellow
     } else {
         Write-Host "Downloading dataset ..." -ForegroundColor Cyan
-        & $venvPy download_data.py
+        Invoke-Step 'download_data.py' { & $venvPy download_data.py }
     }
 }
 
 if (-not $SkipTests) {
     Write-Host "`nRunning tests ..." -ForegroundColor Cyan
-    & $venvPy -m pytest -q
+    Invoke-Step 'pytest' { & $venvPy -m pytest -q }
     Write-Host "`nLinting ..." -ForegroundColor Cyan
-    & $venvPy -m ruff check src tests predict.py download_data.py
-    & $venvPy -m ruff format --check src tests predict.py download_data.py
+    Invoke-Step 'ruff check' { & $venvPy -m ruff check src tests predict.py download_data.py }
+    Invoke-Step 'ruff format --check' { & $venvPy -m ruff format --check src tests predict.py download_data.py }
     Write-Host "`nSample prediction:" -ForegroundColor Cyan
-    & $venvPy predict.py --input sample_customer.json
+    Invoke-Step 'predict.py' { & $venvPy predict.py --input sample_customer.json }
 }
 
 if ($Reports) {
     Write-Host "`nRegenerating reports (this takes a few minutes) ..." -ForegroundColor Cyan
     # policy consumes the out-of-fold file calibrate writes, so order matters here.
-    & $venvPy -m telco_churn.calibrate
-    & $venvPy -m telco_churn.segments
-    & $venvPy -m telco_churn.cohort
-    & $venvPy -m telco_churn.policy --probabilities artifacts/oof_probabilities.csv
-    & $venvPy -m telco_churn.score_batch
+    Invoke-Step 'telco_churn.calibrate' { & $venvPy -m telco_churn.calibrate }
+    Invoke-Step 'telco_churn.segments' { & $venvPy -m telco_churn.segments }
+    Invoke-Step 'telco_churn.cohort' { & $venvPy -m telco_churn.cohort }
+    Invoke-Step 'telco_churn.policy' { & $venvPy -m telco_churn.policy --probabilities artifacts/oof_probabilities.csv }
+    Invoke-Step 'telco_churn.score_batch' { & $venvPy -m telco_churn.score_batch }
 }
 
 Write-Host "`nReady." -ForegroundColor Green

@@ -144,7 +144,7 @@ joins before any retraining trigger could be honest. Nothing in this repository
 retrains automatically, and nothing should.
 
 Rollback is documented in [operations.md](operations.md): model file and manifest are
-a pair, restored together from one reviewed revision.
+a pair, restored together from one released revision.
 
 ## Ownership
 

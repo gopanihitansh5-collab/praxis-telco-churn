@@ -87,7 +87,7 @@ Distribution shift is not the same as concept drift or degraded model performanc
 ## Model changes and rollback
 
 Model file and adjacent `.manifest.json` are a pair. Restore both from the same
-reviewed revision, restart, call `/health`, then compare the known sample response.
+released revision, restart, call `/health`, then compare the known sample response.
 Version and SHA256 guards reject unsupported/corrupt pairs before deserialization.
 Never accept arbitrary uploaded model files. SHA256 provides integrity, not trust.
 Keep the immutable code/dependency/data/metrics revision with each approved artifact.
@@ -178,7 +178,7 @@ override; `reports/policy.json` records the assumptions used alongside the resul
 default. `--partition all` scores the full file including rows the model was fitted on,
 which sets `scored_in_sample` and adds a caveat that the figures are optimistic.
 `--budget` suppresses contacts beyond the cap and never promotes a negative-value
-customer. `--uncalibrated` uses the reviewed default artifact instead.
+customer. `--uncalibrated` uses the served default artifact instead.
 
 Neither command changes the served model. `artifacts/model_calibrated.joblib` is a
 separate opt-in file with its own manifest, selected explicitly by path, so the reported

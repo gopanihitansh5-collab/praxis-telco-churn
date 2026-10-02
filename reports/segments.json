@@ -75,7 +75,7 @@
         "average_precision": 0.07581147873344714,
         "precision": null,
         "recall": 0.0,
-        "f1": 0.0,
+        "f1": null,
         "lift": null,
         "single_class": false,
         "reason": "no customers scored at or above the threshold: precision, F1 and lift undefined",

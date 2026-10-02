@@ -7,3 +7,18 @@ data/*.csv
 
 mlruns/
 .ruff_cache/
+
+# Credentials must never enter a public repository.
+kaggle.json
+kaggle.txt
+*token*.txt
+*.pem
+*.key
+.env
+.env.*
+.kaggle/
+
+# reports/worklist.csv is committed as the documented example, built from the public
+# dataset. Any other worklist may hold real customer identifiers, so it stays local.
+reports/worklist_*.csv
+reports/*_private.csv

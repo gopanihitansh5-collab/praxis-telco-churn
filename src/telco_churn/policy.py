@@ -12,18 +12,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import f1_score, precision_score, recall_score
+from .paths import artifacts_dir, project_root, reports_dir
 
 SERVED_THRESHOLD = 0.5
 THRESHOLDS = np.round(np.arange(1, 100) / 100.0, 2)
 REQUIRED_COLUMNS = ("probability", "MonthlyCharges", "churn")
+OOF_PROBABILITIES = "artifacts/oof_probabilities.csv"
 MISSING_INPUT = (
     "--probabilities is required and must point to out-of-fold model scores.\n"
     "No such file is bundled and this module never trains or invents data.\n"
-    "Produce the scores with a training-only study, for example\n"
-    "  python -m telco_churn.calibration_experiment\n"
-    "  python -m telco_churn.threshold\n"
-    "then export their out-of-fold scores as CSV or JSON records with columns\n"
-    "probability, MonthlyCharges, churn (0/1 or No/Yes)."
+    "Produce the scores with\n"
+    "  python -m telco_churn.calibrate\n"
+    f"which writes {OOF_PROBABILITIES}, then pass it with\n"
+    f"  python -m telco_churn.policy --probabilities {OOF_PROBABILITIES}\n"
+    "Any other CSV or JSON records work provided they carry per-row columns\n"
+    "probability, MonthlyCharges, churn (0/1 or No/Yes). The aggregate JSON written by\n"
+    "telco_churn.calibration_experiment and telco_churn.threshold cannot be used: those\n"
+    "modules report summaries, not per-row scores."
 )
 
 
@@ -33,6 +38,32 @@ def _finite(value: object, name: str) -> float:
     if not np.isfinite(float(value)):
         raise ValueError(f"{name} must be finite, got {value!r}")
     return float(value)
+
+
+def _as_float(values: object) -> np.ndarray:
+    """Elementwise float coercion; non-numeric cells become NaN instead of raising."""
+    array = np.asarray(values)
+    flat = pd.to_numeric(pd.Series(array.ravel()), errors="coerce").to_numpy(
+        dtype=float
+    )
+    return flat.reshape(array.shape)
+
+
+def _probabilities(values: object, name: str = "probability") -> np.ndarray:
+    """Model scores as floats in [0, 1]; a 0-100 column would scale every money figure."""
+    array = _as_float(values)
+    unusable = int((~np.isfinite(array)).sum())
+    if unusable:
+        raise ValueError(
+            f"{name} has {unusable} non-numeric, missing or nonfinite value(s); "
+            f"{name} must be numeric model scores in [0, 1]"
+        )
+    if array.size and (array.min() < 0.0 or array.max() > 1.0):
+        raise ValueError(
+            f"{name} spans [{array.min():.6g}, {array.max():.6g}], outside [0, 1]; "
+            f"divide a 0-100 percentage {name} column by 100 before scoring"
+        )
+    return array
 
 
 @dataclass(frozen=True)
@@ -99,8 +130,8 @@ CAVEATS = [
     "value is negative; per_customer_ev_rule is the only reported policy that never does.",
     "Uplift is assumed identical for every customer. Real uplift varies and cannot be "
     "estimated without a randomised holdback, which this dataset does not contain.",
-    "Customers with missing MonthlyCharges carry zero retained value by construction and "
-    "are therefore never contacted.",
+    "Customers whose MonthlyCharges is missing or non-numeric carry zero retained value "
+    "by construction and are therefore never contacted.",
 ]
 
 
@@ -111,7 +142,7 @@ def contact_cost_per_customer(economics: Economics) -> float:
 
 def retained_values(monthly_charges: object, economics: Economics) -> np.ndarray:
     """Per-customer M_i = margin_rate * MonthlyCharges_i * horizon_months."""
-    charges = np.asarray(monthly_charges, dtype=float)
+    charges = _as_float(monthly_charges)
     # Unknown or nonfinite charges have no defensible value; zero keeps EV strictly negative.
     charges = np.where(np.isfinite(charges), charges, 0.0)
     return charges * economics.monthly_margin_rate * float(economics.horizon_months)
@@ -129,7 +160,7 @@ def customer_expected_value(
     prob: object, monthly_charges: object, economics: Economics
 ) -> np.ndarray:
     """EV_i = p_i * u * M_i - c - alpha * d, the value of contacting customer i."""
-    probabilities = np.asarray(prob, dtype=float)
+    probabilities = _probabilities(prob)
     values = retained_values(monthly_charges, economics)
     if probabilities.shape != values.shape:
         raise ValueError("prob and monthly_charges must have the same shape")
@@ -182,11 +213,9 @@ def _summarize(
 def _prepare(
     prob: object, monthly_charges: object, y_true: object, economics: Economics
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    probabilities = np.asarray(prob, dtype=float).ravel()
+    probabilities = _probabilities(prob).ravel()
     labels = _binary_labels(y_true)
-    values = retained_values(
-        np.asarray(monthly_charges, dtype=float).ravel(), economics
-    )
+    values = retained_values(_as_float(monthly_charges).ravel(), economics)
     if not probabilities.shape == labels.shape == values.shape:
         raise ValueError("prob, monthly_charges and y_true must have the same length")
     cost = contact_cost_per_customer(economics)
@@ -230,9 +259,8 @@ def optimal_policy(
     )
     curve = policy_curve(prob, monthly_charges, y_true, economics)
     best = curve[_best_threshold_index(probabilities, expected)]
-    values = retained_values(
-        np.asarray(monthly_charges, dtype=float).ravel(), economics
-    )
+    charges = _as_float(monthly_charges).ravel()
+    values = retained_values(charges, economics)
     mean_value = float(values.mean()) if len(values) else 0.0
 
     def mask_for(count: int) -> np.ndarray:
@@ -271,9 +299,7 @@ def optimal_policy(
         "break_even_probability_at_mean_retained_value": break_even_probability(
             economics, mean_value
         ),
-        "missing_monthly_charges": int(
-            (~np.isfinite(np.asarray(monthly_charges, dtype=float).ravel())).sum()
-        ),
+        "missing_monthly_charges": int((~np.isfinite(charges)).sum()),
         "optimal": best,
         "expected_value": recommended,
         "recommended_action": (
@@ -358,8 +384,19 @@ def plot_policy_curve(curve: list[dict], optimum: float, output_path: Path) -> N
     plt.close(fig)
 
 
+def resolve_probabilities(path: str | Path) -> Path:
+    """Try the path as given, then under the project root, so the cwd does not matter."""
+    file = Path(path).expanduser()
+    if file.is_file() or file.is_absolute():
+        return file
+    for candidate in (project_root() / file, artifacts_dir() / file.name):
+        if candidate.is_file():
+            return candidate
+    return file
+
+
 def load_probabilities(path: str) -> pd.DataFrame:
-    file = Path(path)
+    file = resolve_probabilities(path)
     if not file.is_file():
         raise SystemExit(f"{path} not found.\n{MISSING_INPUT}")
     frame = (
@@ -383,7 +420,10 @@ def main() -> None:
     )
     parser.add_argument(
         "--probabilities",
-        help="CSV/JSON of out-of-fold scores: probability, MonthlyCharges, churn",
+        help=(
+            "CSV/JSON of out-of-fold scores: probability, MonthlyCharges, churn"
+            f" (produced by telco_churn.calibrate as {OOF_PROBABILITIES})"
+        ),
     )
     parser.add_argument("--monthly-margin-rate", type=float, default=0.30)
     parser.add_argument("--horizon-months", type=int, default=12)
@@ -392,8 +432,9 @@ def main() -> None:
     parser.add_argument("--acceptance-rate", type=float, default=0.50)
     parser.add_argument("--uplift", type=float, default=0.25)
     parser.add_argument("--budget", type=int, help="Maximum customers contactable")
-    parser.add_argument("--output", default="reports/policy.json")
-    parser.add_argument("--figure", default="reports/policy_curve.png")
+    # Resolved against the project root so the report lands in the same place from any cwd.
+    parser.add_argument("--output", default=str(reports_dir() / "policy.json"))
+    parser.add_argument("--figure", default=str(reports_dir() / "policy_curve.png"))
     parser.add_argument("--no-figure", action="store_true")
     args = parser.parse_args()
     if not args.probabilities:

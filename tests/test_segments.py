@@ -82,6 +82,17 @@ def test_nothing_flagged_leaves_precision_undefined():
     assert metrics["lift"] is None
     assert metrics["recall"] == 0.0
     assert metrics["average_precision"] is not None
+    # The reason names F1 undefined, so F1 must not read as a measured 0.0.
+    assert metrics["f1"] is None
+    assert "F1" in metrics["reason"]
+
+
+def test_f1_is_zero_when_flagged_rows_are_all_wrong():
+    # Flagged but never right is a measurement, not an undefined metric.
+    metrics = segment_metrics([0, 0, 1, 1], [0.9, 0.8, 0.1, 0.2])
+    assert metrics["f1"] == 0.0
+    assert metrics["precision"] == 0.0
+    assert metrics["reason"] is None
 
 
 def test_empty_segment_is_reported_not_crashed():
@@ -236,6 +247,21 @@ def test_markdown_table_is_weakest_first_with_sample_sizes():
     assert f"| {weakest['n']} |" in first
     assert "n/a" in table  # Undefined metrics are shown, never zero-filled.
     assert "not a fairness audit" in table
+
+
+def test_markdown_and_json_agree_on_undefined_f1():
+    rows = [("One year", "DSL", 0, "Mailed check", 30)] * 40
+    X = make_frame(rows)
+    report = evaluate_segments(X, [1, 0] * 20, np.full(40, 0.2), min_rows=30)
+    metrics = report["segmentations"]["Contract"]["One year"]
+    assert metrics["flagged"] == 0
+    assert metrics["f1"] is None
+    table = markdown_table(report)
+    row = next(line for line in table.splitlines() if line.startswith("| Contract |"))
+    # Precision, F1 and lift are undefined here; recall is a measured 0.000.
+    assert row.count("n/a") == 3
+    assert "| n/a | 0.000 | n/a | n/a |" in row
+    assert metrics["reason"] in table
 
 
 def test_index_misalignment_does_not_shuffle_labels():

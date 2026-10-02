@@ -17,6 +17,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import StratifiedKFold, cross_val_predict
 from .artifact import write_manifest
 from .data import SEED, load_split
+from . import paths
 from .train import make_pipeline
 
 # Reusing the already-selected configuration keeps this a calibration step, not a
@@ -135,15 +136,17 @@ def run(data_path: str | Path, output_dir: str | Path, reports_dir: str | Path) 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", default="data/telco.csv")
-    parser.add_argument("--output", default="artifacts")
-    parser.add_argument("--reports", default="reports")
+    parser.add_argument("--data", default=None, help="Raw Telco CSV path")
+    parser.add_argument("--output", default=None, help="Artifact directory")
+    parser.add_argument("--reports", default=None, help="Report directory")
     args = parser.parse_args()
-    if not Path(args.data).exists():
-        raise SystemExit(
-            f"Dataset not found: {args.data}. Run python download_data.py first."
-        )
-    print(json.dumps(run(args.data, args.output, args.reports), indent=2))
+    try:
+        data_path = paths.resolve_dataset(args.data)
+    except FileNotFoundError as exc:
+        raise SystemExit(str(exc)) from exc
+    output = Path(args.output) if args.output else paths.artifacts_dir()
+    reports = Path(args.reports) if args.reports else paths.reports_dir()
+    print(json.dumps(run(data_path, output, reports), indent=2))
 
 
 if __name__ == "__main__":

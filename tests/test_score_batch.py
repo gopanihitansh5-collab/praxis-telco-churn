@@ -1,10 +1,12 @@
 import json
+import sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+from telco_churn.paths import project_root
 from telco_churn.policy import DEFAULTS, Economics
-from telco_churn.score_batch import apply_budget, score, summarize
+from telco_churn.score_batch import apply_budget, main, relative_path, score, summarize
 
 
 class StubModel:
@@ -141,3 +143,70 @@ def test_deterministic(customer):
     a = score(frame, StubModel([0.7, 0.5, 0.3]), DEFAULTS)
     b = score(frame, StubModel([0.7, 0.5, 0.3]), DEFAULTS)
     assert a.equals(b)
+
+
+def run_main(tmp_path, *extra):
+    """Drive the CLI end to end; the summary is the only artefact the assertions read."""
+    summary = tmp_path / "summary.json"
+    argv = [
+        "score_batch",
+        "--output",
+        str(tmp_path / "worklist.csv"),
+        "--summary",
+        str(summary),
+        *extra,
+    ]
+    monkey = pytest.MonkeyPatch()
+    try:
+        monkey.setattr(sys, "argv", argv)
+        main()
+    finally:
+        monkey.undo()
+    return json.loads(summary.read_text())
+
+
+def external_csv(tmp_path, customer):
+    source = tmp_path / "customers.csv"
+    frame_of(customer, [110.0, 90.0, 20.0]).to_csv(source, index=False)
+    return source
+
+
+def test_external_input_is_not_reported_in_sample(tmp_path, customer):
+    # An external file's overlap with the training rows is unknowable, so neither the
+    # flag nor the caveats may assert that its rows were trained on.
+    report = run_main(tmp_path, "--input", str(external_csv(tmp_path, customer)))
+    assert report["rows_scored"] == 3
+    assert report["scored_in_sample"] is False
+    assert not any("in-sample" in caveat for caveat in report["caveats"])
+    assert not any("--partition holdout" in caveat for caveat in report["caveats"])
+
+
+def test_partition_with_external_input_is_rejected_accurately(tmp_path, customer):
+    with pytest.raises(SystemExit) as error:
+        run_main(
+            tmp_path,
+            "--input",
+            str(external_csv(tmp_path, customer)),
+            "--partition",
+            "train",
+        )
+    message = str(error.value)
+    assert "--partition" in message
+    # The old message advised the very flag this guard rejects.
+    assert "use --partition holdout" not in message.lower()
+
+
+def test_recorded_paths_are_relative(tmp_path, customer):
+    report = run_main(tmp_path, "--input", str(external_csv(tmp_path, customer)))
+    for key in ("input", "model"):
+        assert not Path(report[key]).is_absolute()
+        assert "\\" not in report[key]
+        assert Path.home().name not in report[key]
+    assert report["model"] == "artifacts/model_calibrated.joblib"
+    # The input lies outside the project root, so only its basename can be recorded.
+    assert report["input"] == "customers.csv"
+
+
+def test_relative_path_keeps_project_files_inside_the_root():
+    assert relative_path(project_root() / "data" / "telco.csv") == "data/telco.csv"
+    assert relative_path(Path.home() / "elsewhere" / "telco.csv") == "telco.csv"

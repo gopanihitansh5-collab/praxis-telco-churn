@@ -78,11 +78,16 @@ def resolve_dataset(explicit: str | Path | None = None, required: bool = True) -
 
 
 def resolve_model(explicit: str | Path | None = None, calibrated: bool = False) -> Path:
-    """Resolve a model artifact; the manifest beside it is loaded by artifact.load_model."""
+    """Resolve a model artifact; the manifest beside it is loaded by artifact.load_model.
+
+    Precedence is explicit path, then `$CHURN_MODEL_PATH`, then the default or
+    calibrated artifact name. The environment variable names a file, so it also
+    overrides `calibrated=True`: a deliberate override is never silently dropped.
+    """
     if explicit is not None:
         return Path(explicit).expanduser()
     env = os.environ.get(MODEL_ENV)
-    if env and not calibrated:
+    if env:
         return Path(env).expanduser()
     name = "model_calibrated.joblib" if calibrated else "model.joblib"
     local = Path.cwd() / "artifacts" / name

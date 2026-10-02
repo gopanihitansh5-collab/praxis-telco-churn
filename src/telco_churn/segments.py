@@ -13,6 +13,7 @@ import pandas as pd
 from sklearn.metrics import average_precision_score, roc_auc_score
 from .artifact import load_model
 from .data import load_split
+from .paths import reports_dir, resolve_dataset, resolve_model
 
 # Segmentation name -> raw column it is derived from.
 SEGMENTS: dict[str, str] = {
@@ -105,8 +106,11 @@ def segment_metrics(
     single_class = n > 0 and churn_count in (0, n)
     precision = true_positive / flagged_count if flagged_count else None
     recall = true_positive / churn_count if churn_count else None
-    # F1 = 2TP / (2TP + FP + FN); undefined only with no positives and none flagged.
+    # F1 = 2TP / (2TP + FP + FN). With nothing flagged it is undefined, not 0.0:
+    # the reason string names it alongside precision, and a segment that was never
+    # scored must stay distinguishable from one that scored badly.
     f1_denominator = flagged_count + churn_count
+    f1 = 2 * true_positive / f1_denominator if flagged_count else None
     churn_rate = churn_count / n if n else None
     reasons = []
     if n == 0:
@@ -134,7 +138,7 @@ def segment_metrics(
         "average_precision": float(average_precision_score(y, p)) if ranked else None,
         "precision": precision,
         "recall": recall,
-        "f1": 2 * true_positive / f1_denominator if f1_denominator else None,
+        "f1": f1,
         "lift": (
             precision / churn_rate if precision is not None and churn_rate else None
         ),
@@ -275,7 +279,7 @@ def markdown_table(report: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def plot_segments(report: dict, output_dir: str | Path = "reports") -> Path:
+def plot_segments(report: dict, output_dir: str | Path | None = None) -> Path:
     """Per-segment average precision against the blended holdout value."""
     rows = [
         (f"{name}: {level}", metrics)
@@ -317,7 +321,7 @@ def plot_segments(report: dict, output_dir: str | Path = "reports") -> Path:
     )
     ax.invert_yaxis()
     fig.tight_layout()
-    path = Path(output_dir) / "segments.png"
+    path = (Path(output_dir) if output_dir else reports_dir()) / "segments.png"
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     return path
@@ -325,22 +329,24 @@ def plot_segments(report: dict, output_dir: str | Path = "reports") -> Path:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", default="data/telco.csv")
-    parser.add_argument("--model", default="artifacts/model.joblib")
-    parser.add_argument("--output-dir", default="reports")
+    parser.add_argument("--data", default=None, help="Raw Telco CSV path")
+    parser.add_argument("--model", default=None, help="Model artifact path")
+    parser.add_argument("--output-dir", default=None, help="Report directory")
     parser.add_argument("--threshold", type=float, default=0.5)
     parser.add_argument("--min-rows", type=int, default=30)
     args = parser.parse_args()
-    if not Path(args.data).exists():
+    try:
+        data_path = resolve_dataset(args.data)
+    except FileNotFoundError as exc:
+        # This report is never generated from substitute data, so a missing CSV stops it.
         raise SystemExit(
-            f"{args.data} not found. Supply the raw Telco CSV with --data; "
-            "this report is never generated from substitute data."
-        )
-    _, X_test, _, y_test = load_split(args.data)
-    model = load_model(args.model)
+            f"{exc}\n\nThis report is never generated from substitute data."
+        ) from exc
+    _, X_test, _, y_test = load_split(data_path)
+    model = load_model(resolve_model(args.model))
     prob = model.predict_proba(X_test)[:, 1]
     report = evaluate_segments(X_test, y_test, prob, args.threshold, args.min_rows)
-    output = Path(args.output_dir)
+    output = Path(args.output_dir) if args.output_dir else reports_dir()
     output.mkdir(parents=True, exist_ok=True)
     (output / "segments.json").write_text(json.dumps(report, indent=2) + "\n")
     (output / "segments.md").write_text(markdown_table(report))
