@@ -133,9 +133,10 @@ higher churn rate in the recent cohort, not an improvement. Details:
 
 ## Monitoring and retraining
 
-`src/telco_churn/drift.py` provides a numeric PSI prototype against a training-only
-reference, with 0.2 as a heuristic review flag. It is offline, numeric-only, has no
-schedule or alerting, and **distribution shift is not the same as degraded accuracy**.
+`src/telco_churn/drift.py` compares current numeric inputs against a training-only PSI
+reference, with 0.2 as a heuristic review flag. It covers numeric covariate shift,
+offline and on demand: no schedule, no alerting, and **distribution shift is not the same
+as degraded accuracy**.
 
 There is no labelled feedback loop here. In production, churn labels arrive weeks or
 months after the prediction, so performance monitoring would need delayed-label
@@ -147,5 +148,6 @@ a pair, restored together from one reviewed revision.
 
 ## Ownership
 
-Take-home assessment artifact. No production owner, no on-call rotation, no support
-commitment.
+This model has no production owner, on-call rotation or support commitment, and is not
+registered for promotion. Any deployment decision belongs to a named owner who accepts
+the limitations recorded above.

@@ -69,18 +69,19 @@ external telemetry or remote experiment server. `mlruns/` is ignored by Git. The
 local tracker is tested with a temporary file store. Tracking failure surfaces as
 an error; trained artifacts may already exist. No automatic registry promotion.
 
-## Input drift prototype
+## Input drift monitoring
 
 ```bash
 python -m telco_churn.drift                         # training-only reference
 python -m telco_churn.drift --current path/to/current_raw_profiles.csv
 ```
 
-Numeric PSI only: training quantile bins, separate missing bin, smoothed fractions;
+Numeric PSI: training quantile bins, separate missing bin, smoothed fractions;
 at least 100 current profiles. `artifacts/drift_reference.json` is bundled and comes
 from the original training split. 0.2 is a heuristic review flag, not a validated
-alert. Sample size affects PSI; inspect seasonality and collection changes. This
-has no categorical monitoring, labels, schedule, notifications or retraining action.
+alert. Sample size affects PSI; inspect seasonality and collection changes. Scope is
+numeric inputs on demand: no categorical monitoring, labels, schedule, notifications or
+retraining action.
 Distribution shift is not the same as concept drift or degraded model performance.
 
 ## Model changes and rollback
@@ -105,8 +106,8 @@ third validation level: outer evaluation; inner out-of-fold threshold scores; tu
 within each inner training subset. It compares fixed 0.5 to training-selected F1
 thresholds without touching the 1,409-row holdout. Expensive by design and optional.
 Results do not provide one business-approved deployment threshold. New feature
-engineering would require predeclared training-only validation and fresh final data;
-it is not justified merely because an inspected holdout plot looks promising.
+engineering requires a training-only validation plan declared in advance and fresh final
+data; an inspected holdout plot is not a basis for it.
 
 ## Notebook
 

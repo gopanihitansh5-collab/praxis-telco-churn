@@ -55,8 +55,7 @@ change the included inference model or use the 1,409 holdout rows.
 The measured probability-quality improvement is useful, but F1 at 0.5 decreases.
 Calibration is not a free improvement to every metric. The calibrated variant also
 averages multiple fitted models, so differences are not caused by the sigmoid map
-alone. This remains an optional experiment; the reviewed baseline/default artifact
-is unchanged. A business threshold needs cost/value information and training-only
+alone. The reviewed default artifact is unchanged. A business threshold needs cost/value information and training-only
 validation, not retuning against the already inspected holdout. Full fold parameters
 and caveats are in `reports/calibration_experiment.json`.
 

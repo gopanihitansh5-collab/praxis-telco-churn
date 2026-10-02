@@ -34,7 +34,7 @@ should not be trusted. Each is reproducible by one command.
 | Cohort transfer | Does it hold up on newer customers? | `reports/cohort_shift.json`; 0.771 vs 0.836 control | Tenure proxies cohort, not time |
 | Ranked worklist | What does a retention team actually receive? | `reports/worklist.csv` | Priorities for review, not approved actions |
 | Model card | Should this be trusted for a given use? | `docs/model_card.md` | No production owner |
-| One-command setup | Can a reviewer run it? | `Makefile`, `setup.ps1`, `src/telco_churn/paths.py` | Python 3.10/3.11 only, by manifest design |
+| One-command setup | Does it reproduce anywhere? | `Makefile`, `setup.ps1`, `src/telco_churn/paths.py` | Python 3.10/3.11 only, by manifest design |
 
 The decision layer is deliberately the only addition that touches money, and it
 reports the range of assumptions under which the programme is value-destroying rather
