@@ -56,13 +56,12 @@ def test_model_defaults_without_env(monkeypatch):
     assert paths.resolve_model(calibrated=True).name == "model_calibrated.joblib"
 
 
-@pytest.mark.parametrize("module", [segments, cohort, calibrate, train])
-def test_commands_resolve_the_project_dataset_from_any_directory(
-    module, monkeypatch, tmp_path
-):
-    """Each CLI must reach the project dataset with no arguments and no fitting."""
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv(paths.DATA_ENV, raising=False)
+WIRED_MODULES = [segments, cohort, calibrate, train]
+DATASET_PRESENT = (paths.data_dir() / paths.DATASET_NAME).exists()
+
+
+def run_main_capturing_paths(module, monkeypatch):
+    """Invoke a CLI with no arguments, recording resolved paths before any fitting."""
     seen = {}
 
     def record(data_path, *rest):
@@ -77,5 +76,34 @@ def test_commands_resolve_the_project_dataset_from_any_directory(
     monkeypatch.setattr(sys, "argv", [module.__name__])
     with pytest.raises(RuntimeError, match="stop before any fitting"):
         module.main()
-    assert seen["data"] == paths.resolve_dataset()
-    assert all(item.startswith(str(paths.project_root())) for item in seen["rest"])
+    return seen
+
+
+@pytest.mark.parametrize("module", WIRED_MODULES)
+def test_commands_resolve_through_paths_from_any_directory(
+    module, monkeypatch, tmp_path
+):
+    """Every CLI honours CHURN_DATA and writes into the project, not the caller's cwd.
+
+    Uses an environment override rather than the real dataset so the wiring is
+    guarded even where the gitignored CSV is absent, such as CI.
+    """
+    csv = tmp_path / "telco.csv"
+    csv.write_text("customerID\n")
+    monkeypatch.setenv(paths.DATA_ENV, str(csv))
+    monkeypatch.chdir(tmp_path)
+    seen = run_main_capturing_paths(module, monkeypatch)
+    assert seen["data"] == csv
+    root = str(paths.project_root())
+    assert all(item.startswith(root) for item in seen["rest"])
+    assert not any(item.startswith(str(tmp_path)) for item in seen["rest"])
+
+
+@pytest.mark.skipif(DATASET_PRESENT is False, reason="dataset not downloaded")
+@pytest.mark.parametrize("module", WIRED_MODULES)
+def test_commands_default_to_the_project_dataset(module, monkeypatch, tmp_path):
+    """With no argument and no override, each CLI finds the project's own dataset."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv(paths.DATA_ENV, raising=False)
+    seen = run_main_capturing_paths(module, monkeypatch)
+    assert seen["data"] == paths.data_dir() / paths.DATASET_NAME

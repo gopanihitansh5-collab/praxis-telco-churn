@@ -1,4 +1,14 @@
-# Telco customer churn: from a risk score to a retention decision
+<div align="center">
+
+# Telco customer churn
+
+**From a risk score to a retention decision**
+
+[Results](#headline-results) · [How it works](#how-it-works) · [Architecture](#architecture) ·
+[Model card](docs/model_card.md) · [Operations](docs/operations.md) ·
+[hitansh-portfolio-zeta.vercel.app](https://hitansh-portfolio-zeta.vercel.app/)
+
+</div>
 
 When a telecom customer cancels their service, the company loses all the future
 revenue that customer would have paid. This project takes a single customer
@@ -35,7 +45,7 @@ contact — including the case where the honest answer is to contact nobody at a
 - [Running everything](#running-everything)
 - [The service](#the-service)
 - [Scope and assumptions](#scope-and-assumptions)
-- [With two more days](#with-two-more-days)
+- [Roadmap: the next two days](#roadmap-the-next-two-days)
 - [Dataset and licence](#dataset-and-licence)
 - [Author](#author)
 
@@ -625,7 +635,7 @@ Dockerfile .github/workflows/tests.yml
 ## Running everything
 
 ```bash
-make test        # 144 tests
+make test        # 148 tests
 make lint        # ruff check and format
 make reports     # regenerate every report below
 make data        # fetch the dataset, verifying its SHA-256
@@ -670,7 +680,7 @@ strings are accepted by the fitted encoder.
 
 The model file and its manifest are a pair: `load_model` verifies schema version,
 scikit-learn version and SHA-256, and fails closed rather than serving predictions from a
-corrupt or mismatched artifact. 144 tests cover contracts, model integrity,
+corrupt or mismatched artifact. 148 tests cover contracts, model integrity,
 serialisation round-trips, the leakage boundary, the decision layer and the CLI. CI runs
 them on Python 3.10 and 3.11, lints, builds the container and smoke-tests a real
 prediction through it.
@@ -697,19 +707,32 @@ The dataset is a single static public extract with no timestamps, tariff detail 
 of prior retention action. It supports the analysis above and cannot establish future
 business performance for a real operator.
 
-## With two more days
+## Roadmap: the next two days
 
-1. **Measure the uplift.** Every currency figure here is sensitivity analysis because the
-   save rate is unknown. A randomised holdback on the next campaign converts the decision
-   layer from parameterised arithmetic into a measured business case. Nothing else on
-   this list changes as much.
-2. **Close the long-contract blind spot.** The classifier cannot flag one- and two-year
-   customers at any conventional cutoff, and they hold over half the missed churners.
-   Per-segment operating points, or a model fitted within those segments, with the
-   validation plan declared before looking — not retuned against a holdout already read.
-3. **Build the feedback loop.** Churn labels arrive months after the prediction, so
-   monitoring needs delayed-label joins before a retraining trigger can be honest. Add
-   categorical drift, subgroup calibration, clear ownership and rollback criteria.
+Given two more days on this project, these are the three improvements worth making,
+ordered by how much each one moves the result.
+
+**1. Measure the uplift.** The save rate — how often a retention offer actually keeps a
+customer who would otherwise have left — is the one input the model cannot derive from
+historical data, and it decides whether the programme is worth running at all. The way
+to get it is a randomised holdback: a control group that receives no offer, so the
+difference between the groups is the uplift itself. That single measurement collapses
+the sensitivity surface into one number and turns the decision layer from parameterised
+arithmetic into a costed business case. It outranks any further modelling work.
+
+**2. Close the long-contract blind spot.** One- and two-year customers hold over half
+the churners the model misses, and no conventional cutoff reaches them. Two routes are
+open: a per-segment operating point, or a model fitted inside those segments where the
+base rate is not competing with a global threshold. Either needs its validation plan
+fixed in advance and a fresh holdout, since the current one has been read and can no
+longer settle the question.
+
+**3. Build the feedback loop.** Churn labels arrive months after the prediction they
+would judge, so performance monitoring needs delayed-label joins before any retraining
+trigger can be trusted. That means categorical drift alongside the numeric PSI already
+in place, calibration tracked per subgroup rather than in aggregate, named ownership of
+the model, and rollback criteria agreed before they are needed rather than during an
+incident.
 
 ## Dataset and licence
 
